@@ -118,7 +118,7 @@ function seite(string $inhalt, bool $mitSprache = true): void
         . '.kw input[type=radio]{position:absolute;opacity:0}.kb{display:block;border:2px solid #dde1e7;border-radius:10px;padding:14px;cursor:pointer;margin-bottom:6px;font-weight:400}'
         . '.kw input:checked+.kb{border-color:#2358c4;background:#eef3fd}.kw input:focus-visible+.kb{outline:2px solid #2358c4}.kk{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:#2358c4}'
         . '.kn{display:flex;flex-direction:column;align-items:center;gap:2px}.kn small{color:#1c2330;font-size:.75rem}.ka{color:#5b6472;font-size:1.3rem}.kt{display:block;margin-top:10px}.kf{margin:0 0 14px 4px}'
-        . '</style></head><body><main>' . ($mitSprache ? sprachauswahl() : '') . $inhalt . '</main></body></html>';
+        . '</style></head><body><main>' . ($mitSprache ? sprachauswahl() : '') . $inhalt . '<p class="hint" style="margin-top:24px">ChurchForge Setup ' . h(trim((string) @file_get_contents('/opt/cf-setup/VERSION'))) . '</p></main></body></html>';
 }
 
 // ---------- Skripte (öffentlich, ohne Anmeldung; feste Liste) ----------

@@ -1,3 +1,4 @@
+- m1k · Version (cf-setup/VERSION) unten auf jeder Seite · php -l ok, UI nicht im Browser geprüft
 - m1j · smtp.js/branding.js ohne Anmeldung auslieferbar (feste Liste, nur diese zwei Dateien) · php -l ok · erlaubt Prüfung per curl, ob der neue Stand läuft
 - m1i · Aussehen: Symbolbild als Platzhalter, Vorschau des gewählten Bilds, Upload sofort bei Auswahl (branding.js) · php -l ok · Liste UI: ok, UI nicht im Browser geprüft · offen: Eingaben bei Fehler beim Auto-Upload
 - m1h · geheim.env: Werte AES-256-GCM verschlüsselt, Schlüssel in /daten/.schluessel (0600); Klartext-Altwerte werden gelesen und beim Speichern ersetzt · php -l ok, einmal von Hand Rundlauf in Scratch · Grenze: wer root auf dem Rechner ist, liest auch den Schlüssel

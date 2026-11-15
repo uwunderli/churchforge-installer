@@ -13,6 +13,7 @@ COPY bin /opt/cf-setup/bin
 COPY src /opt/cf-setup/src
 COPY lang /opt/cf-setup/lang
 COPY public /opt/cf-setup/public
+COPY VERSION /opt/cf-setup/VERSION
 COPY entrypoint.sh /opt/cf-setup/entrypoint.sh
 RUN chmod 0755 /opt/cf-setup/entrypoint.sh \
     && for f in /opt/cf-setup/bin/*.php /opt/cf-setup/src/*.php /opt/cf-setup/lang/*.php /opt/cf-setup/public/*.php; do php -l "$f" >/dev/null || exit 1; done
