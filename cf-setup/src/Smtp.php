@@ -30,7 +30,13 @@ final class Smtp
         $ziel = ($c['sicher'] === 'ssl' ? 'ssl://' : 'tcp://') . $c['host'] . ':' . $c['port'];
         $this->s = @stream_socket_client($ziel, $en, $es, 10);
         if (!is_resource($this->s)) {
-            throw new RuntimeException("Verbindung nicht möglich ($es)");
+            $d = trim((string) $es);
+            if ($d === '') {
+                $d = trim((string) preg_replace('/^stream_socket_client\(\):\s*/', '', (string) (error_get_last()['message'] ?? '')));
+            }
+            $tipp = ($c['sicher'] === 'ssl' && (int) $c['port'] === 587) ? ' Tipp: Port 587 passt zu STARTTLS, SSL/TLS nutzt meist 465.'
+                : (($c['sicher'] === 'starttls' && (int) $c['port'] === 465) ? ' Tipp: Port 465 passt zu SSL/TLS, STARTTLS nutzt meist 587.' : '');
+            throw new RuntimeException('Verbindung nicht möglich' . ($d !== '' ? ' (' . $d . ')' : '') . '.' . $tipp);
         }
         stream_set_timeout($this->s, 15);
         $this->erwarte('220');
