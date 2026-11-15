@@ -381,7 +381,8 @@ final class Assistent
                     . '<label for="ssicher">' . h(t('smtp.sicher')) . '</label><select id="ssicher" name="ssicher" style="width:100%;padding:10px;border:1px solid #b9c0cb;border-radius:8px;font:inherit;margin-bottom:14px">' . $opt . '</select>'
                     . self::feld('suser', t('smtp.user'), (string) ($m['user'] ?? ''))
                     . self::feld('spw', t('smtp.pw'), '', 'password', Antworten::geheimGesetzt('SMTP_PASSWORD') ? t('admin.gesetzt') : '')
-                    . self::feld('sabsender', t('smtp.absender'), (string) ($m['absender'] ?? ''), 'text', '', 'noreply@example.ch');
+                    . self::feld('sabsender', t('smtp.absender'), (string) ($m['absender'] ?? ''), 'text', '', 'noreply@example.ch')
+                    . '<script src="/smtp.js"></script>';
                 $extra = '<button type="submit" name="nav" value="test" class="zweit">' . h(t('smtp.test')) . '</button> ';
                 break;
             case 'zusammenfassung':

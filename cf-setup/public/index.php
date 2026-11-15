@@ -194,6 +194,12 @@ if (empty($_SESSION['ok'])) {
 
 // ---------- Vorschau der hochgeladenen Bilder (nur angemeldet) ----------
 $pfad = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+if ($pfad === '/smtp.js') {
+    header('Content-Type: application/javascript; charset=utf-8');
+    header('Cache-Control: no-cache');
+    readfile(__DIR__ . '/smtp.js');
+    exit;
+}
 if (preg_match('#^/branding/((logo|hintergrund|favicon)\.(png|jpg|webp|svg))$#', $pfad, $m) === 1) {
     $datei = Bild::DIR . '/' . $m[1];
     if (!is_file($datei)) {
