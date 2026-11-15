@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../src/Sprache.php';
 require_once __DIR__ . '/../src/Pruefung.php';
+require_once __DIR__ . '/../src/Antworten.php';
+require_once __DIR__ . '/../src/Smtp.php';
+require_once __DIR__ . '/../src/Assistent.php';
 
 const DATEN = '/daten';
 const MAX_FEHLVERSUCHE = 10;
@@ -158,33 +161,33 @@ if (empty($_SESSION['ok'])) {
     exit;
 }
 
-// ---------- Vorprüfung ----------
-$adresse = '';
-$resultate = null;
-if (($_POST['aktion'] ?? '') === 'pruefen' && csrfOk()) {
-    $adresse = trim((string) ($_POST['adresse'] ?? ''));
-    $resultate = Pruefung::alle($adresse);
-    $zaehler = array_count_values(array_column($resultate, 'status'));
-    protokoll('vorpruefung', ['ok' => $zaehler['ok'] ?? 0, 'warn' => $zaehler['warn'] ?? 0, 'fehler' => $zaehler['fehler'] ?? 0]);
+// ---------- Assistent ----------
+$a = Antworten::lade();
+$schritt = (string) ($_SESSION['schritt'] ?? 'art');
+if (!Assistent::gueltig($schritt)) {
+    $schritt = 'art';
 }
-
-$html = '<h1>ChurchForge Setup</h1><p class="sub">' . h(t('schritt1.titel')) . '</p>'
-    . '<div class="box"><form method="post"><input type="hidden" name="aktion" value="pruefen">' . csrfFeld()
-    . '<label for="adresse">' . h(t('schritt1.adresse')) . '</label>'
-    . '<input id="adresse" name="adresse" type="text" value="' . h($adresse) . '" placeholder="' . h(t('schritt1.adresse_ph')) . '">'
-    . '<button type="submit">' . h(t('schritt1.pruefen')) . '</button></form></div>';
-
-if ($resultate !== null) {
-    $html .= '<div class="box">';
-    foreach ($resultate as $x) {
-        $html .= '<div class="z"><span class="pt ' . h($x['status']) . '"></span><div><div class="t">' . h($x['titel']) . '</div><div>' . h($x['text']) . '</div></div></div>';
+$fehler = [];
+$info = '';
+if (($_POST['aktion'] ?? '') === 'schritt' && csrfOk() && (string) ($_POST['schritt'] ?? '') === $schritt) {
+    $nav = (string) ($_POST['nav'] ?? 'weiter');
+    if ($nav === 'zurueck') {
+        $schritt = Assistent::vorher($schritt);
+    } elseif ($nav === 'erneut') {
+        // gleiche Seite noch einmal zeigen
+    } else {
+        [$fehler, $info] = Assistent::verarbeite($schritt, $_POST, $a, $nav === 'test');
+        if (!$fehler) {
+            Antworten::speichere($a);
+            protokoll('schritt', ['s' => $schritt]);
+            if ($nav === 'weiter') {
+                $schritt = Assistent::nachher($schritt);
+            }
+        }
     }
-    $html .= '</div>';
-    $zaehler = array_count_values(array_column($resultate, 'status'));
-    $html .= ($zaehler['fehler'] ?? 0) > 0
-        ? '<p class="fe">' . h(t('schritt1.fehler')) . '</p>'
-        : '<div class="box">' . h(t('schritt1.bereit')) . '</div>';
+    $_SESSION['schritt'] = $schritt;
 }
 
-$html .= '<form method="post"><input type="hidden" name="aktion" value="abmelden">' . csrfFeld() . '<button class="zweit" type="submit">' . h(t('abmelden')) . '</button></form>';
+$html = Assistent::seite($schritt, $a, $fehler, $info)
+    . '<form method="post" style="margin-top:12px"><input type="hidden" name="aktion" value="abmelden">' . csrfFeld() . '<button class="zweit" type="submit">' . h(t('abmelden')) . '</button></form>';
 seite($html);

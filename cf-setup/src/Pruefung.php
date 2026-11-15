@@ -7,7 +7,7 @@ final class Pruefung
     /** @return list<array{status:string,titel:string,text:string}> */
     public static function alle(string $adresse = ''): array
     {
-        $r = [self::docker(), self::compose(), self::datenordner(), self::platz(), self::arbeitsspeicher(), self::architektur(), self::ports()];
+        $r = [self::docker(), self::compose(), self::datenordner(), self::platz(), self::arbeitsspeicher(), self::raspi(), self::architektur(), self::ports()];
         if ($adresse !== '') {
             $r[] = self::adresse($adresse);
         }
@@ -92,6 +92,14 @@ final class Pruefung
             return self::res('warn', 'ram.t', $t . ' ' . t('ram.warn'));
         }
         return self::res('ok', 'ram.t', $t);
+    }
+
+    private static function raspi(): array
+    {
+        $m = (string) @file_get_contents("/proc/device-tree/model");
+        return str_contains($m, "Raspberry Pi")
+            ? self::res("fehler", "raspi.t", t("raspi.fehler"))
+            : self::res("ok", "raspi.t", t("raspi.ok"));
     }
 
     private static function architektur(): array
