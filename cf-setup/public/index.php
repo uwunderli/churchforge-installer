@@ -115,6 +115,9 @@ function seite(string $inhalt, bool $mitSprache = true): void
         . '.sw .liste{position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #dde1e7;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);z-index:5;min-width:170px;padding:4px}'
         . '.sw .liste button{display:flex;gap:10px;align-items:center;width:100%;margin:0;padding:8px 10px;background:transparent;color:#1c2330;border-radius:6px;text-align:left}'
         . '.sw .liste button:hover,.sw .liste button.aktiv{background:#e6e9ef}.fl{flex:none;border:1px solid #dde1e7;border-radius:2px}'
+        . '.kw input[type=radio]{position:absolute;opacity:0}.kb{display:block;border:2px solid #dde1e7;border-radius:10px;padding:14px;cursor:pointer;margin-bottom:6px;font-weight:400}'
+        . '.kw input:checked+.kb{border-color:#2358c4;background:#eef3fd}.kw input:focus-visible+.kb{outline:2px solid #2358c4}.kk{display:flex;align-items:center;gap:6px;flex-wrap:wrap;color:#2358c4}'
+        . '.kn{display:flex;flex-direction:column;align-items:center;gap:2px}.kn small{color:#1c2330;font-size:.75rem}.ka{color:#5b6472;font-size:1.3rem}.kt{display:block;margin-top:10px}.kf{margin:0 0 14px 4px}'
         . '</style></head><body><main>' . ($mitSprache ? sprachauswahl() : '') . $inhalt . '</main></body></html>';
 }
 

@@ -57,6 +57,11 @@ return [
     'erreich.mail_h' => 'Nur für Hinweise zum Ablauf des Zertifikats.',
     'erreich.port' => 'HTTP-Port für den vorgeschalteten Proxy',
     'erreich.port_h' => 'Dorthin leitet dein Proxy weiter. Vorgabe: 8081.',
+    'kn.internet' => 'Internet',
+    'kn.modem' => 'Modem',
+    'kn.proxy' => 'Proxy-Rechner',
+    'kn.cf' => 'ChurchForge-Rechner',
+    'adr.dav' => 'Adresse für WebDAV',
 
     'admin.titel' => 'Administrator',
     'admin.hinweis' => 'Mit diesem Konto meldest du dich später überall an. Das Passwort wird nie wieder angezeigt.',

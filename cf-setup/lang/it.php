@@ -56,6 +56,11 @@ return [
     'erreich.mail_h' => 'Solo per avvisi sulla scadenza del certificato.',
     'erreich.port' => 'Porta HTTP per il proxy a monte',
     'erreich.port_h' => 'Il tuo proxy inoltra a questa porta. Predefinita: 8081.',
+    'kn.internet' => 'Internet',
+    'kn.modem' => 'Modem',
+    'kn.proxy' => 'Computer proxy',
+    'kn.cf' => 'Computer ChurchForge',
+    'adr.dav' => 'Indirizzo WebDAV',
 
     'admin.titel' => 'Amministratore',
     'admin.hinweis' => 'Con questo account accederai ovunque in seguito. La password non viene mai più mostrata.',

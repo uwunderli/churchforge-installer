@@ -116,7 +116,7 @@ final class Assistent
                     $f[] = t('err.domain', ['f' => t('adr.haupt')]);
                 }
                 $hosts = [];
-                foreach (['hub' => 'adr.hub', 'auth' => 'adr.auth', 'files' => 'adr.files'] as $k => $l) {
+                foreach (['hub' => 'adr.hub', 'auth' => 'adr.auth', 'files' => 'adr.files', 'dav' => 'adr.dav'] as $k => $l) {
                     $v = strtolower($s($k));
                     $v = $v === '' && $haupt !== '' ? $k . '.' . $haupt : $v;
                     if (preg_match(self::DOMAIN, $v) !== 1) {
@@ -248,6 +248,30 @@ final class Assistent
             . h($label) . ($hint !== '' ? '<div class="hint" style="margin-left:22px">' . h($hint) . '</div>' : '') . '</label>';
     }
 
+    private static function ikone(string $typ): string
+    {
+        $k = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+        $p = match ($typ) {
+            'internet' => '<circle cx="24" cy="24" r="16"/><ellipse cx="24" cy="24" rx="7" ry="16"/><path d="M8 24h32M10 15h28M10 33h28"/>',
+            'modem' => '<rect x="6" y="26" width="36" height="12" rx="3"/><path d="M12 32h.01M18 32h.01M30 32h8M16 26l-4-12M32 26l4-12"/>',
+            'proxy' => '<rect x="8" y="8" width="32" height="22" rx="2"/><path d="M18 40h12M24 30v10M16 19h16M27 14l5 5-5 5"/>',
+            default => '<rect x="10" y="6" width="28" height="12" rx="2"/><rect x="10" y="20" width="28" height="12" rx="2"/><path d="M16 12h.01M16 26h.01M24 32v8M16 40h16"/>',
+        };
+        return '<svg width="48" height="48" viewBox="0 0 48 48" aria-hidden="true" ' . $k . '>' . $p . '</svg>';
+    }
+
+    /** @param list<string> $kette */
+    private static function karte(string $wert, array $kette, string $text, bool $an, string $felder): string
+    {
+        $z = [];
+        foreach ($kette as $n) {
+            $z[] = '<span class="kn">' . self::ikone($n) . '<small>' . h(t('kn.' . $n)) . '</small></span>';
+        }
+        return '<div class="kw"><input type="radio" id="proxy_' . h($wert) . '" name="proxy" value="' . h($wert) . '"' . ($an ? ' checked' : '') . '>'
+            . '<label class="kb" for="proxy_' . h($wert) . '"><span class="kk">' . implode('<span class="ka">→</span>', $z) . '</span>'
+            . '<span class="kt">' . h($text) . '</span></label><div class="kf">' . $felder . '</div></div>';
+    }
+
     /** @param array<string,mixed> $a @param list<string> $fehler */
     public static function seite(string $schritt, array $a, array $fehler, string $info): string
     {
@@ -323,16 +347,17 @@ final class Assistent
                 $body = '<h2>' . h(t('adr.titel')) . '</h2>' . self::feld('haupt', t('adr.haupt'), $hb, 'text', t('adr.haupt_h'), 'kirche.example.ch')
                     . self::feld('hub', t('adr.hub'), (string) ($h['hub'] ?? ''), 'text', t('adr.leer', ['v' => 'hub.' . ($hb !== '' ? $hb : '…')]))
                     . self::feld('auth', t('adr.auth'), (string) ($h['auth'] ?? ''), 'text', t('adr.leer', ['v' => 'auth.' . ($hb !== '' ? $hb : '…')]))
-                    . self::feld('files', t('adr.files'), (string) ($h['files'] ?? ''), 'text', t('adr.leer', ['v' => 'files.' . ($hb !== '' ? $hb : '…')]));
+                    . self::feld('files', t('adr.files'), (string) ($h['files'] ?? ''), 'text', t('adr.leer', ['v' => 'files.' . ($hb !== '' ? $hb : '…')]))
+                    . self::feld('dav', t('adr.dav'), (string) ($h['dav'] ?? ''), 'text', t('adr.leer', ['v' => 'dav.' . ($hb !== '' ? $hb : '…')]));
                 break;
             case 'erreichbarkeit':
                 $ja = (bool) ($a['proxy_vorhanden'] ?? false);
                 $gesetzt = array_key_exists('proxy_vorhanden', $a);
                 $body = '<h2>' . h(t('erreich.titel')) . '</h2><p>' . h(t('erreich.frage')) . '</p>'
-                    . self::radio('proxy', 'nein', t('erreich.nein'), $gesetzt && !$ja)
-                    . self::feld('zertmail', t('erreich.mail'), $s('zertifikat_mail'), 'text', t('erreich.mail_h'))
-                    . self::radio('proxy', 'ja', t('erreich.ja'), $ja)
-                    . self::feld('port', t('erreich.port'), (string) ($a['http_port'] ?? '8081'), 'text', t('erreich.port_h'));
+                    . self::karte('nein', ['internet', 'modem', 'cf'], t('erreich.nein'), $gesetzt && !$ja,
+                        self::feld('zertmail', t('erreich.mail'), $s('zertifikat_mail'), 'text', t('erreich.mail_h')))
+                    . self::karte('ja', ['internet', 'modem', 'proxy', 'cf'], t('erreich.ja'), $ja,
+                        self::feld('port', t('erreich.port'), (string) ($a['http_port'] ?? '8081'), 'text', t('erreich.port_h')));
                 break;
             case 'admin':
                 $body = '<h2>' . h(t('admin.titel')) . '</h2><p class="hint">' . h(t('admin.hinweis')) . '</p>'
@@ -372,6 +397,7 @@ final class Assistent
                     t('adr.hub') => (string) ($h['hub'] ?? ''),
                     t('adr.auth') => (string) ($h['auth'] ?? ''),
                     t('adr.files') => (string) ($h['files'] ?? ''),
+                    t('adr.dav') => (string) ($h['dav'] ?? ''),
                     t('erreich.titel') => !empty($a['proxy_vorhanden']) ? t('sum.proxy_ja', ['p' => $s('http_port')]) : t('sum.proxy_nein', ['m' => $s('zertifikat_mail')]),
                     t('admin.name') => $s('admin_name') . ' (' . $s('admin_mail') . ')',
                     t('admin.pw') => Antworten::geheimGesetzt('ADMIN_PASSWORD') ? t('sum.gesetzt') : '–',

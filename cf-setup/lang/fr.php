@@ -56,6 +56,11 @@ return [
     'erreich.mail_h' => "Uniquement pour les avis d'expiration du certificat.",
     'erreich.port' => 'Port HTTP pour le proxy en amont',
     'erreich.port_h' => 'Votre proxy redirige vers ce port. Par défaut : 8081.',
+    'kn.internet' => 'Internet',
+    'kn.modem' => 'Modem',
+    'kn.proxy' => 'Ordinateur proxy',
+    'kn.cf' => 'Ordinateur ChurchForge',
+    'adr.dav' => 'Adresse WebDAV',
 
     'admin.titel' => 'Administrateur',
     'admin.hinweis' => "Avec ce compte, vous vous connecterez plus tard partout. Le mot de passe n'est plus jamais affiché.",

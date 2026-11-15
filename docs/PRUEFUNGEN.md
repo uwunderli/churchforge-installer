@@ -1,3 +1,4 @@
+- m1e · Erreichbarkeit als Icon-Karten (Internet→Modem→[Proxy]→ChurchForge), Adressfeld WebDAV (dav.<Haupt>) · php -l geänderte Dateien ok · Liste Install/UI: ok, UI nicht im Browser geprüft · offen: Hub-Host für dav.wunder.li klären (Seafile oder OfficeForge)
 # Prüfungen
 
 - 2026-11-15 · 0.4.0-m1d · Schritt «Aussehen» (Logo/Hintergrund per URL oder Upload, Favicon aus Logo, Begrüssungstext, Hauptfarbe, Links Datenschutz/Impressum), Bildprüfung (Typ, Grösse, GD-Neukodierung, SVG ohne aktive Inhalte, URL ohne Loopback/Link-Local), mbstring/gd/openssl im Image ergänzt (mbstring fehlte, mb_strlen in M1b) · geprüft: php -l, Sprachschlüssel je Sprache 149 · Liste Install: Frage 11 ok (keine Geheimnisse berührt) · Liste ACL: keine neue Kommunikation ausser Bild-URL-Abruf (Loopback/Link-Local gesperrt, private LAN-Adressen erlaubt) · Liste UI: ok, UI nicht im Browser geprüft · Upload/URL-Abruf nie ausprobiert · kein Build

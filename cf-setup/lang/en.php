@@ -56,6 +56,11 @@ return [
     'erreich.mail_h' => 'Only for notices about certificate expiry.',
     'erreich.port' => 'HTTP port for the upstream proxy',
     'erreich.port_h' => 'Your proxy forwards to this port. Default: 8081.',
+    'kn.internet' => 'Internet',
+    'kn.modem' => 'Modem',
+    'kn.proxy' => 'Proxy computer',
+    'kn.cf' => 'ChurchForge computer',
+    'adr.dav' => 'Address for WebDAV',
 
     'admin.titel' => 'Administrator',
     'admin.hinweis' => 'You will sign in everywhere with this account later. The password is never shown again.',
