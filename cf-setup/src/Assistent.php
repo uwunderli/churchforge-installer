@@ -322,9 +322,13 @@ final class Assistent
                 $x = (array) ($a['aussehen'] ?? []);
                 $vor = static function (string $art) use ($x): string {
                     $d = (string) ($x[$art] ?? '');
-                    return $d === '' ? '' : '<div style="margin:6px 0"><img src="/branding/' . h($d) . '?v=' . (string) @filemtime(Bild::DIR . '/' . $d)
-                        . '" alt="" style="max-height:64px;max-width:100%;border:1px solid #dde1e7;border-radius:6px;background:#fff"> '
-                        . '<label style="display:inline;font-weight:400"><input type="checkbox" name="' . h($art) . '_weg" value="1"> ' . h(t('aussehen.entfernen')) . '</label></div>';
+                    $rahmen = 'display:flex;align-items:center;justify-content:center;min-width:96px;height:72px;padding:4px;box-sizing:border-box;border:1px solid #dde1e7;border-radius:8px;background:#f4f5f7;color:#9aa3b2';
+                    $inhalt = $d === ''
+                        ? '<svg width="40" height="40" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="36" height="30" rx="3"/><circle cx="17" cy="20" r="3.5"/><path d="M6 34l11-10 9 8 6-5 10 9"/></svg>'
+                        : '<img src="/branding/' . h($d) . '?v=' . (string) @filemtime(Bild::DIR . '/' . $d) . '" alt="" style="max-height:62px;max-width:240px">';
+                    return '<div style="margin:6px 0;display:flex;gap:12px;align-items:center"><div style="' . $rahmen . '">' . $inhalt . '</div>'
+                        . ($d === '' ? '' : '<label style="display:inline;font-weight:400"><input type="checkbox" name="' . h($art) . '_weg" value="1"> ' . h(t('aussehen.entfernen')) . '</label>')
+                        . '</div>';
                 };
                 $body = '<h2>' . h(t('aussehen.titel')) . '</h2><p class="hint">' . h(t('aussehen.hinweis')) . '</p>'
                     . '<h3 style="margin-bottom:4px">' . h(t('aussehen.logo')) . '</h3>' . $vor('logo')
@@ -339,7 +343,8 @@ final class Assistent
                     . '<div class="hint" style="margin-bottom:14px">' . h(t('aussehen.farbe_h')) . '</div>'
                     . self::feld('datenschutz', t('aussehen.datenschutz'), (string) ($x['datenschutz'] ?? ''), 'text', '', 'https://…')
                     . self::feld('impressum', t('aussehen.impressum'), (string) ($x['impressum'] ?? ''), 'text', '', 'https://…')
-                    . '<p class="hint">' . h(t('aussehen.recht')) . '</p>';
+                    . '<p class="hint">' . h(t('aussehen.recht')) . '</p>'
+                    . '<script src="/branding.js"></script>';
                 break;
             case 'adressen':
                 $h = (array) ($a['hosts'] ?? []);

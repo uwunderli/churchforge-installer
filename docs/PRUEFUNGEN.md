@@ -1,3 +1,4 @@
+- m1i · Aussehen: Symbolbild als Platzhalter, Vorschau des gewählten Bilds, Upload sofort bei Auswahl (branding.js) · php -l ok · Liste UI: ok, UI nicht im Browser geprüft · offen: Eingaben bei Fehler beim Auto-Upload
 - m1h · geheim.env: Werte AES-256-GCM verschlüsselt, Schlüssel in /daten/.schluessel (0600); Klartext-Altwerte werden gelesen und beim Speichern ersetzt · php -l ok, einmal von Hand Rundlauf in Scratch · Grenze: wer root auf dem Rechner ist, liest auch den Schlüssel
 - m1g · SMTP-Verbindungsfehler zeigt Ursache und Port-Tipp (SSL/TLS↔587) · php -l ok · UI nicht im Browser geprüft
 - m1f · SMTP: Port folgt der Verschlüsselung (587/465/25) per smtp.js (eigene Datei, CSP bleibt) · php -l ok · Liste UI: ok, UI nicht im Browser geprüft
