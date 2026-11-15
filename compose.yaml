@@ -1,0 +1,12 @@
+# cf-setup, Start-Datei (M1). Einziger Wert zum Anpassen: der Port links (8080).
+# Bauen aus diesem Ordner: docker compose up -d --build
+services:
+  cf-setup:
+    build: ./cf-setup
+    container_name: cf-setup
+    restart: unless-stopped
+    ports:
+      - "8080:8080"            # nur im lokalen Netz erreichbar machen
+    volumes:
+      - ./cf-daten:/daten                          # hier legt das System alles ab
+      - /var/run/docker.sock:/var/run/docker.sock  # damit der Assistent später Container starten kann
