@@ -61,13 +61,34 @@ function gewaehlteSprache(): ?string
     return Sprache::gueltig($c) ? $c : null;
 }
 
-function sprachknoepfe(): string
+/** Flaggen als SVG-Symbole (einmal pro Seite), danach per <use> verwendet. */
+function flaggenSymbole(): string
 {
-    $s = '<form method="post" class="sp"><input type="hidden" name="aktion" value="sprache">' . csrfFeld();
+    return '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>'
+        . '<symbol id="fl-de" viewBox="0 0 5 3"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#d00"/><rect y="2" width="5" height="1" fill="#ffce00"/></symbol>'
+        . '<symbol id="fl-fr" viewBox="0 0 3 2"><rect width="1" height="2" fill="#0055a4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ef4135"/></symbol>'
+        . '<symbol id="fl-it" viewBox="0 0 3 2"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></symbol>'
+        . '<symbol id="fl-en" viewBox="0 0 60 30"><clipPath id="fl-s"><path d="M0,0v30h60v-30z"/></clipPath><clipPath id="fl-t"><path d="M30,15h30v15zv15h-30zh-30v-15zv-15h30z"/></clipPath>'
+        . '<g clip-path="url(#fl-s)"><path d="M0,0v30h60v-30z" fill="#012169"/><path d="M0,0L60,30M60,0L0,30" stroke="#fff" stroke-width="6"/>'
+        . '<path d="M0,0L60,30M60,0L0,30" clip-path="url(#fl-t)" stroke="#c8102e" stroke-width="4"/><path d="M30,0v30M0,15h60" stroke="#fff" stroke-width="10"/>'
+        . '<path d="M30,0v30M0,15h60" stroke="#c8102e" stroke-width="6"/></g></symbol></defs></svg>';
+}
+
+function flagge(string $c): string
+{
+    return '<svg class="fl" width="24" height="16" viewBox="0 0 24 16" aria-hidden="true"><use href="#fl-' . h($c) . '" width="24" height="16"/></svg>';
+}
+
+/** Sprachauswahl als Aufklappliste mit Flaggen, ohne JavaScript. */
+function sprachauswahl(): string
+{
+    $l = '<form method="post"><input type="hidden" name="aktion" value="sprache">' . csrfFeld();
     foreach (Sprache::ERLAUBT as $c => $n) {
-        $s .= '<button type="submit" name="lang" value="' . h($c) . '" class="zweit' . ($c === Sprache::code() ? ' aktiv' : '') . '">' . h($n) . '</button>';
+        $l .= '<button type="submit" name="lang" value="' . h($c) . '"' . ($c === Sprache::code() ? ' class="aktiv"' : '') . '>' . flagge($c) . '<span>' . h($n) . '</span></button>';
     }
-    return $s . '</form>';
+    $l .= '</form>';
+    return flaggenSymbole() . '<div class="sprachbar"><details class="sw"><summary aria-label="' . h(t('sprache.waehlen')) . '">'
+        . flagge(Sprache::code()) . '<span>' . h(strtoupper(Sprache::code())) . '</span><span class="pfeil">▾</span></summary><div class="liste">' . $l . '</div></details></div>';
 }
 
 function seite(string $inhalt, bool $mitSprache = true): void
@@ -87,7 +108,13 @@ function seite(string $inhalt, bool $mitSprache = true): void
         . '.pt{flex:none;width:14px;height:14px;border-radius:50%;margin-top:6px}'
         . '.ok{background:#2e9e5b}.warn{background:#e0a100}.fehler{background:#d23a3a}'
         . '.t{font-weight:600}.fe{color:#d23a3a}.hint{color:#5b6472;font-size:.9rem}'
-        . '</style></head><body><main>' . $inhalt . ($mitSprache ? '<div class="hint" style="margin-top:24px">' . sprachknoepfe() . '</div>' : '') . '</main></body></html>';
+        . '.sprachbar{display:flex;justify-content:flex-end;margin-bottom:8px}.sw{position:relative}'
+        . '.sw summary{list-style:none;cursor:pointer;display:inline-flex;gap:8px;align-items:center;padding:6px 10px;background:#fff;border:1px solid #b9c0cb;border-radius:8px;font-size:.9rem}'
+        . '.sw summary::-webkit-details-marker{display:none}.sw .pfeil{color:#5b6472}'
+        . '.sw .liste{position:absolute;right:0;top:100%;margin-top:4px;background:#fff;border:1px solid #dde1e7;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.12);z-index:5;min-width:170px;padding:4px}'
+        . '.sw .liste button{display:flex;gap:10px;align-items:center;width:100%;margin:0;padding:8px 10px;background:transparent;color:#1c2330;border-radius:6px;text-align:left}'
+        . '.sw .liste button:hover,.sw .liste button.aktiv{background:#e6e9ef}.fl{flex:none;border:1px solid #dde1e7;border-radius:2px}'
+        . '</style></head><body><main>' . ($mitSprache ? sprachauswahl() : '') . $inhalt . '</main></body></html>';
 }
 
 // ---------- Sprache wählen ----------
@@ -108,10 +135,10 @@ if ($sprache === null) {
     Sprache::setze(Sprache::vomBrowser());
     $knoepfe = '<form method="post" class="sp" style="flex-direction:column;align-items:stretch"><input type="hidden" name="aktion" value="sprache">' . csrfFeld();
     foreach (Sprache::ERLAUBT as $c => $n) {
-        $knoepfe .= '<button type="submit" name="lang" value="' . h($c) . '" class="' . ($c === Sprache::code() ? '' : 'zweit') . '">' . h($n) . '</button>';
+        $knoepfe .= '<button type="submit" name="lang" value="' . h($c) . '" class="' . ($c === Sprache::code() ? '' : 'zweit') . '" style="display:flex;gap:10px;align-items:center;justify-content:center">' . flagge($c) . '<span>' . h($n) . '</span></button>';
     }
     $knoepfe .= '</form>';
-    seite('<h1>ChurchForge Setup</h1><p class="sub">' . h(t('sprache.waehlen')) . ' · ' . h(t('sprache.hinweis')) . '</p><div class="box">' . $knoepfe . '</div>', false);
+    seite(flaggenSymbole() . '<h1>ChurchForge Setup</h1><p class="sub">' . h(t('sprache.waehlen')) . ' · ' . h(t('sprache.hinweis')) . '</p><div class="box">' . $knoepfe . '</div>', false);
     exit;
 }
 Sprache::setze($sprache);
