@@ -121,6 +121,15 @@ function seite(string $inhalt, bool $mitSprache = true): void
         . '</style></head><body><main>' . ($mitSprache ? sprachauswahl() : '') . $inhalt . '</main></body></html>';
 }
 
+// ---------- Skripte (öffentlich, ohne Anmeldung; feste Liste) ----------
+$pfad = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+if (in_array($pfad, ['/smtp.js', '/branding.js'], true)) {
+    header('Content-Type: application/javascript; charset=utf-8');
+    header('Cache-Control: no-cache');
+    readfile(__DIR__ . $pfad);
+    exit;
+}
+
 // ---------- Sprache wählen ----------
 if (($_POST['aktion'] ?? '') === 'sprache' && csrfOk()) {
     $c = (string) ($_POST['lang'] ?? '');
@@ -193,13 +202,6 @@ if (empty($_SESSION['ok'])) {
 }
 
 // ---------- Vorschau der hochgeladenen Bilder (nur angemeldet) ----------
-$pfad = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
-if (in_array($pfad, ['/smtp.js', '/branding.js'], true)) {
-    header('Content-Type: application/javascript; charset=utf-8');
-    header('Cache-Control: no-cache');
-    readfile(__DIR__ . $pfad);
-    exit;
-}
 if (preg_match('#^/branding/((logo|hintergrund|favicon)\.(png|jpg|webp|svg))$#', $pfad, $m) === 1) {
     $datei = Bild::DIR . '/' . $m[1];
     if (!is_file($datei)) {
