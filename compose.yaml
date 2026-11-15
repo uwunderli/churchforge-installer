@@ -7,6 +7,8 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"            # nur im lokalen Netz erreichbar machen
+    # environment:
+    #   CF_STARTCODE: "<eigener Code, mindestens 8 Zeichen>"   # optional; sonst steht ein Code im Log
     volumes:
       - ./cf-daten:/daten                          # hier legt das System alles ab
       - /var/run/docker.sock:/var/run/docker.sock  # damit der Assistent später Container starten kann

@@ -81,9 +81,10 @@ if (empty($_SESSION['ok'])) {
         if ($n >= MAX_FEHLVERSUCHE) {
             $meldung = 'Zu viele Fehlversuche. Starte den Container neu (docker restart cf-setup) und nimm den neuen Startcode aus dem Log.';
         } else {
-            $eingabe = strtoupper(trim((string) ($_POST['code'] ?? '')));
+            $eingabe = trim((string) ($_POST['code'] ?? ''));
             $soll = trim((string) @file_get_contents(DATEN . '/.startcode.sha256'));
-            if ($soll !== '' && hash_equals($soll, hash('sha256', $eingabe))) {
+            if ($soll !== '' && $eingabe !== ''
+                && (hash_equals($soll, hash('sha256', $eingabe)) || hash_equals($soll, hash('sha256', strtoupper($eingabe))))) {
                 session_regenerate_id(true);
                 $_SESSION['ok'] = true;
                 protokoll('anmeldung');
@@ -100,7 +101,7 @@ if (empty($_SESSION['ok'])) {
     seite('ChurchForge Setup', '<h1>ChurchForge Setup</h1><p class="sub">Willkommen. Zuerst brauchst du den Startcode.</p>'
         . '<div class="box"><form method="post"><input type="hidden" name="aktion" value="anmelden"><input type="hidden" name="csrf" value="' . h(csrf()) . '">'
         . '<label for="code">Startcode</label><input id="code" name="code" type="text" autocomplete="off" autofocus placeholder="XXXX-XXXX">'
-        . $f . '<p class="hint">Den Code findest du im Log des Containers: <code>docker logs cf-setup</code>. In Arcane öffnest du dafür die Protokolle von «cf-setup».</p>'
+        . $f . '<p class="hint">Den Code findest du im Log des Containers «cf-setup» (<code>docker logs cf-setup</code>) oder, falls du ihn selbst festgelegt hast, als CF_STARTCODE in deiner Start-Datei.</p>'
         . '<button type="submit">Weiter</button></form></div>');
     exit;
 }
