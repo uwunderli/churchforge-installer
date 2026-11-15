@@ -1,3 +1,4 @@
+- m1h · geheim.env: Werte AES-256-GCM verschlüsselt, Schlüssel in /daten/.schluessel (0600); Klartext-Altwerte werden gelesen und beim Speichern ersetzt · php -l ok, einmal von Hand Rundlauf in Scratch · Grenze: wer root auf dem Rechner ist, liest auch den Schlüssel
 - m1g · SMTP-Verbindungsfehler zeigt Ursache und Port-Tipp (SSL/TLS↔587) · php -l ok · UI nicht im Browser geprüft
 - m1f · SMTP: Port folgt der Verschlüsselung (587/465/25) per smtp.js (eigene Datei, CSP bleibt) · php -l ok · Liste UI: ok, UI nicht im Browser geprüft
 - m1e · Erreichbarkeit als Icon-Karten (Internet→Modem→[Proxy]→ChurchForge), Adressfeld WebDAV (dav.<Haupt>) · php -l geänderte Dateien ok · Liste Install/UI: ok, UI nicht im Browser geprüft · offen: Hub-Host für dav.<Haupt> klären (Seafile oder OfficeForge)
