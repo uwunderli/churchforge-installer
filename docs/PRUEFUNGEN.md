@@ -1,3 +1,4 @@
+- m1l · compose.yaml: pull_policy: build, damit Oberflächen wie Arcane neu bauen · keine Code-Änderung
 - m1k · Version (cf-setup/VERSION) unten auf jeder Seite · php -l ok, UI nicht im Browser geprüft
 - m1j · smtp.js/branding.js ohne Anmeldung auslieferbar (feste Liste, nur diese zwei Dateien) · php -l ok · erlaubt Prüfung per curl, ob der neue Stand läuft
 - m1i · Aussehen: Symbolbild als Platzhalter, Vorschau des gewählten Bilds, Upload sofort bei Auswahl (branding.js) · php -l ok · Liste UI: ok, UI nicht im Browser geprüft · offen: Eingaben bei Fehler beim Auto-Upload

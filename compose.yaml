@@ -3,6 +3,7 @@
 services:
   cf-setup:
     build: ./cf-setup
+    pull_policy: build        # bei jedem Start neu bauen (wichtig für Arcane und andere Oberflächen ohne --build)
     container_name: cf-setup
     restart: unless-stopped
     ports:
