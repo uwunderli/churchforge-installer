@@ -52,10 +52,12 @@ final class Antworten
 
     private static function schreibe(string $pfad, string $inhalt): void
     {
-        $tmp = $pfad . '.tmp';
+        $alt = umask(0077);
+        $tmp = $pfad . ".tmp";
         if (file_put_contents($tmp, $inhalt, LOCK_EX) === false) {
             throw new RuntimeException('Datenordner nicht beschreibbar');
         }
+        umask($alt);
         chmod($tmp, 0600);
         rename($tmp, $pfad);
     }
