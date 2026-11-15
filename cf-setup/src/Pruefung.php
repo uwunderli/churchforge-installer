@@ -1,5 +1,5 @@
 <?php
-// Vorprüfung (nur lesen). Jede Prüfung liefert: status ok|warn|fehler, titel, text (Klartext, was zu tun ist).
+// Vorprüfung (nur lesen). Jede Prüfung liefert: status ok|warn|fehler, titel, text (übersetzt, Klartext).
 declare(strict_types=1);
 
 final class Pruefung
@@ -7,26 +7,19 @@ final class Pruefung
     /** @return list<array{status:string,titel:string,text:string}> */
     public static function alle(string $adresse = ''): array
     {
-        $r = [];
-        $r[] = self::docker();
-        $r[] = self::compose();
-        $r[] = self::datenordner();
-        $r[] = self::platz();
-        $r[] = self::arbeitsspeicher();
-        $r[] = self::architektur();
-        $r[] = self::ports();
+        $r = [self::docker(), self::compose(), self::datenordner(), self::platz(), self::arbeitsspeicher(), self::architektur(), self::ports()];
         if ($adresse !== '') {
             $r[] = self::adresse($adresse);
         }
         return $r;
     }
 
-    private static function res(string $status, string $titel, string $text): array
+    private static function res(string $status, string $titelKey, string $text): array
     {
-        return ['status' => $status, 'titel' => $titel, 'text' => $text];
+        return ['status' => $status, 'titel' => t($titelKey), 'text' => $text];
     }
 
-    /** @return array{0:int,1:string} Exitcode und Ausgabe (nur Stdout) */
+    /** @return array{0:int,1:string} Exitcode und Stdout */
     private static function lauf(array $cmd): array
     {
         $p = @proc_open($cmd, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
@@ -43,19 +36,17 @@ final class Pruefung
     private static function docker(): array
     {
         [$c, $o] = self::lauf(['docker', 'version', '--format', '{{.Server.Version}}']);
-        if ($c === 0 && $o !== '') {
-            return self::res('ok', 'Docker', "Docker läuft (Version $o).");
-        }
-        return self::res('fehler', 'Docker', 'Der Setup-Container erreicht Docker nicht. Prüfe in der Start-Datei, dass /var/run/docker.sock eingebunden ist, und starte neu.');
+        return ($c === 0 && $o !== '')
+            ? self::res('ok', 'docker.t', t('docker.ok', ['v' => $o]))
+            : self::res('fehler', 'docker.t', t('docker.fehler'));
     }
 
     private static function compose(): array
     {
         [$c, $o] = self::lauf(['docker', 'compose', 'version', '--short']);
-        if ($c === 0 && $o !== '') {
-            return self::res('ok', 'Docker Compose', "Compose ist vorhanden (Version $o).");
-        }
-        return self::res('fehler', 'Docker Compose', 'Docker Compose fehlt im Setup-Container. Bitte das Setup-Image neu laden.');
+        return ($c === 0 && $o !== '')
+            ? self::res('ok', 'compose.t', t('compose.ok', ['v' => $o]))
+            : self::res('fehler', 'compose.t', t('compose.fehler'));
     }
 
     private static function datenordner(): array
@@ -64,59 +55,58 @@ final class Pruefung
         $t = $d . '/.schreibprobe';
         if (is_dir($d) && @file_put_contents($t, 'x') !== false) {
             @unlink($t);
-            return self::res('ok', 'Datenordner', 'Der Datenordner ist beschreibbar.');
+            return self::res('ok', 'daten.t', t('daten.ok'));
         }
-        return self::res('fehler', 'Datenordner', 'Der Datenordner /daten ist nicht beschreibbar. Prüfe in der Start-Datei die Zeile mit ./cf-daten:/daten und die Rechte des Ordners.');
+        return self::res('fehler', 'daten.t', t('daten.fehler'));
     }
 
     private static function platz(): array
     {
         $frei = @disk_free_space('/daten');
         if ($frei === false) {
-            return self::res('warn', 'Speicherplatz', 'Der freie Platz liess sich nicht ermitteln.');
+            return self::res('warn', 'platz.t', t('platz.unbekannt'));
         }
         $gb = $frei / 1073741824;
-        $t = sprintf('%.0f GB frei im Datenordner.', $gb);
+        $t = t('platz.frei', ['gb' => sprintf('%.0f', $gb)]);
         if ($gb < 10) {
-            return self::res('fehler', 'Speicherplatz', "$t Mindestens 10 GB nötig, empfohlen 50 GB oder mehr.");
+            return self::res('fehler', 'platz.t', $t . ' ' . t('platz.fehler'));
         }
         if ($gb < 50) {
-            return self::res('warn', 'Speicherplatz', "$t Das reicht zum Start, empfohlen sind 50 GB oder mehr.");
+            return self::res('warn', 'platz.t', $t . ' ' . t('platz.warn'));
         }
-        return self::res('ok', 'Speicherplatz', $t);
+        return self::res('ok', 'platz.t', $t);
     }
 
     private static function arbeitsspeicher(): array
     {
         $m = @file_get_contents('/proc/meminfo');
         if ($m === false || !preg_match('/^MemTotal:\s+(\d+) kB/m', $m, $x)) {
-            return self::res('warn', 'Arbeitsspeicher', 'Der Arbeitsspeicher liess sich nicht ermitteln.');
+            return self::res('warn', 'ram.t', t('ram.unbekannt'));
         }
         $gb = (int) $x[1] / 1048576;
-        $t = sprintf('%.1f GB Arbeitsspeicher.', $gb);
+        $t = t('ram.wert', ['gb' => sprintf('%.1f', $gb)]);
         if ($gb < 3) {
-            return self::res('fehler', 'Arbeitsspeicher', "$t Mindestens 4 GB nötig.");
+            return self::res('fehler', 'ram.t', $t . ' ' . t('ram.fehler'));
         }
         if ($gb < 6) {
-            return self::res('warn', 'Arbeitsspeicher', "$t Das reicht für den Start, empfohlen sind 8 GB.");
+            return self::res('warn', 'ram.t', $t . ' ' . t('ram.warn'));
         }
-        return self::res('ok', 'Arbeitsspeicher', $t);
+        return self::res('ok', 'ram.t', $t);
     }
 
     private static function architektur(): array
     {
         $a = php_uname('m');
-        if (in_array($a, ['x86_64', 'aarch64'], true)) {
-            return self::res('ok', 'Prozessor', "Architektur $a wird unterstützt.");
-        }
-        return self::res('warn', 'Prozessor', "Architektur $a ist nicht getestet.");
+        return in_array($a, ['x86_64', 'aarch64'], true)
+            ? self::res('ok', 'arch.t', t('arch.ok', ['a' => $a]))
+            : self::res('warn', 'arch.t', t('arch.warn', ['a' => $a]));
     }
 
     private static function ports(): array
     {
         [$c, $o] = self::lauf(['docker', 'ps', '--format', '{{.Names}}|{{.Ports}}']);
         if ($c !== 0) {
-            return self::res('warn', 'Ports 80 und 443', 'Die belegten Ports liessen sich nicht lesen (Docker nicht erreichbar).');
+            return self::res('warn', 'ports.t', t('ports.unbekannt'));
         }
         $belegt = [];
         foreach (explode("\n", $o) as $zeile) {
@@ -126,25 +116,23 @@ final class Pruefung
             [$name, $ports] = explode('|', $zeile, 2);
             foreach ([80, 443] as $p) {
                 if (preg_match('/:' . $p . '->/', $ports) === 1) {
-                    $belegt[] = "Port $p durch Container «$name»";
+                    $belegt[] = t('ports.item', ['p' => $p, 'name' => $name]);
                 }
             }
         }
-        if ($belegt) {
-            return self::res('warn', 'Ports 80 und 443', implode('; ', $belegt) . '. Läuft dort schon ein Proxy, wähle später die Betriebsart «Hinter bestehendem Proxy». Programme ausserhalb von Docker erkennt diese Prüfung nicht.');
-        }
-        return self::res('ok', 'Ports 80 und 443', 'Kein Docker-Container belegt diese Ports. Programme ausserhalb von Docker erkennt diese Prüfung nicht.');
+        return $belegt
+            ? self::res('warn', 'ports.t', implode('; ', $belegt) . '. ' . t('ports.belegt'))
+            : self::res('ok', 'ports.t', t('ports.frei'));
     }
 
     private static function adresse(string $a): array
     {
         if (preg_match('/^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i', $a) !== 1) {
-            return self::res('fehler', 'Adresse', 'Die Adresse sieht nicht wie ein Domainname aus (Beispiel: kirche.example.ch).');
+            return self::res('fehler', 'adresse.t', t('adresse.ungueltig'));
         }
         $ip = gethostbyname($a . '.');
-        if ($ip === $a . '.') {
-            return self::res('warn', 'Adresse', "«$a» wird im Netz nicht aufgelöst. Lege den DNS-Eintrag an, bevor du fortfährst.");
-        }
-        return self::res('ok', 'Adresse', "«$a» zeigt auf $ip.");
+        return $ip === $a . '.'
+            ? self::res('warn', 'adresse.t', t('adresse.nicht_aufgeloest', ['a' => $a]))
+            : self::res('ok', 'adresse.t', t('adresse.ok', ['a' => $a, 'ip' => $ip]));
     }
 }
