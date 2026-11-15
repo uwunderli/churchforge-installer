@@ -6,6 +6,7 @@ require_once __DIR__ . '/../src/Sprache.php';
 require_once __DIR__ . '/../src/Pruefung.php';
 require_once __DIR__ . '/../src/Antworten.php';
 require_once __DIR__ . '/../src/Smtp.php';
+require_once __DIR__ . '/../src/Bild.php';
 require_once __DIR__ . '/../src/Assistent.php';
 
 const DATEN = '/daten';
@@ -185,6 +186,21 @@ if (empty($_SESSION['ok'])) {
         . '<label for="code">' . h(t('login.startcode')) . '</label><input id="code" name="code" type="text" autocomplete="off" autofocus placeholder="XXXX-XXXX">'
         . $f . '<p class="hint">' . h(t('login.hinweis')) . '</p>'
         . '<button type="submit">' . h(t('weiter')) . '</button></form></div>');
+    exit;
+}
+
+// ---------- Vorschau der hochgeladenen Bilder (nur angemeldet) ----------
+$pfad = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/');
+if (preg_match('#^/branding/((logo|hintergrund|favicon)\.(png|jpg|webp|svg))$#', $pfad, $m) === 1) {
+    $datei = Bild::DIR . '/' . $m[1];
+    if (!is_file($datei)) {
+        http_response_code(404);
+        exit;
+    }
+    header('Content-Type: ' . ['png' => 'image/png', 'jpg' => 'image/jpeg', 'webp' => 'image/webp', 'svg' => 'image/svg+xml'][$m[3]]);
+    header("Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'; sandbox");
+    header('Cache-Control: no-cache');
+    readfile($datei);
     exit;
 }
 

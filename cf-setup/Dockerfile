@@ -5,7 +5,7 @@ ARG BASIS=docker:cli
 FROM ${BASIS}
 
 ARG PHP=php84
-RUN apk add --no-cache ${PHP} ${PHP}-session ${PHP}-ctype \
+RUN apk add --no-cache ${PHP} ${PHP}-session ${PHP}-ctype ${PHP}-gd ${PHP}-openssl ${PHP}-mbstring \
     && ln -sf /usr/bin/${PHP} /usr/local/bin/php \
     && mkdir -p /opt/cf-setup
 

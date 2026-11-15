@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 final class Assistent
 {
-    public const REIHE = ['art', 'pruefung', 'paket', 'organisation', 'adressen', 'erreichbarkeit', 'admin', 'smtp', 'zusammenfassung'];
+    public const REIHE = ['art', 'pruefung', 'paket', 'organisation', 'aussehen', 'adressen', 'erreichbarkeit', 'admin', 'smtp', 'zusammenfassung'];
     private const PAKETE = ['kirche', 'feuerwehr', 'privat'];
     private const ZONEN = ['Europe/Zurich', 'Europe/Berlin', 'Europe/Vienna', 'Europe/Paris', 'Europe/Rome', 'Europe/Vaduz', 'UTC'];
     private const DOMAIN = '/^(?=.{4,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i';
@@ -65,6 +65,49 @@ final class Assistent
                 if (!$f) {
                     $a['organisation'] = $n;
                     $a['zeitzone'] = $s('zeitzone');
+                }
+                break;
+            case 'aussehen':
+                $x = (array) ($a['aussehen'] ?? []);
+                $begr = preg_replace('/[\x00-\x1f\x7f]/u', ' ', $s('begruessung')) ?? '';
+                if (mb_strlen($begr) > 200) {
+                    $f[] = t('err.laenge', ['f' => t('aussehen.begruessung'), 'min' => 0, 'max' => 200]);
+                }
+                foreach (['datenschutz' => 'aussehen.datenschutz', 'impressum' => 'aussehen.impressum'] as $k => $l) {
+                    if ($s($k) !== '' && (filter_var($s($k), FILTER_VALIDATE_URL) === false || preg_match('#^https?://#i', $s($k)) !== 1)) {
+                        $f[] = t('err.url', ['f' => t($l)]);
+                    }
+                }
+                $farbe = !empty($p['farbe_aktiv']) ? strtolower($s('farbe')) : '';
+                if ($farbe !== '' && preg_match('/^#[0-9a-f]{6}$/', $farbe) !== 1) {
+                    $f[] = t('err.farbe', ['f' => t('aussehen.farbe')]);
+                }
+                $neu = [];
+                foreach (['logo' => [2097152, ['png', 'jpg', 'webp', 'svg'], 'aussehen.logo'], 'hintergrund' => [5242880, ['png', 'jpg', 'webp'], 'aussehen.hintergrund']] as $art => [$max, $erl, $lab]) {
+                    if (!empty($p[$art . '_weg'])) {
+                        $neu[$art] = '';
+                        continue;
+                    }
+                    [$name, $fehl] = Bild::nimm($art, $_FILES[$art . '_datei'] ?? null, $s($art . '_url'), $max, $erl, t($lab));
+                    if ($fehl !== null) {
+                        $f[] = $fehl;
+                    } elseif ($name !== null) {
+                        $neu[$art] = $name;
+                    }
+                }
+                if (!$f) {
+                    foreach ($neu as $art => $name) {
+                        if ($name === '') {
+                            Bild::entferne($art);
+                        }
+                        $x[$art] = $name === '' ? null : $name;
+                    }
+                    $x['favicon'] = Bild::favicon($x['logo'] ?? null);
+                    $x['begruessung'] = $begr;
+                    $x['farbe'] = $farbe === '' ? null : $farbe;
+                    $x['datenschutz'] = $s('datenschutz');
+                    $x['impressum'] = $s('impressum');
+                    $a['aussehen'] = $x;
                 }
                 break;
             case 'adressen':
@@ -251,6 +294,29 @@ final class Assistent
                 $body = '<h2>' . h(t('org.titel')) . '</h2>' . self::feld('organisation', t('org.name'), $s('organisation'))
                     . '<label for="zeitzone">' . h(t('org.zeitzone')) . '</label><select id="zeitzone" name="zeitzone" style="width:100%;padding:10px;border:1px solid #b9c0cb;border-radius:8px;font:inherit">' . $o . '</select>';
                 break;
+            case 'aussehen':
+                $x = (array) ($a['aussehen'] ?? []);
+                $vor = static function (string $art) use ($x): string {
+                    $d = (string) ($x[$art] ?? '');
+                    return $d === '' ? '' : '<div style="margin:6px 0"><img src="/branding/' . h($d) . '?v=' . (string) @filemtime(Bild::DIR . '/' . $d)
+                        . '" alt="" style="max-height:64px;max-width:100%;border:1px solid #dde1e7;border-radius:6px;background:#fff"> '
+                        . '<label style="display:inline;font-weight:400"><input type="checkbox" name="' . h($art) . '_weg" value="1"> ' . h(t('aussehen.entfernen')) . '</label></div>';
+                };
+                $body = '<h2>' . h(t('aussehen.titel')) . '</h2><p class="hint">' . h(t('aussehen.hinweis')) . '</p>'
+                    . '<h3 style="margin-bottom:4px">' . h(t('aussehen.logo')) . '</h3>' . $vor('logo')
+                    . self::feld('logo_url', t('aussehen.logo_url'), '', 'text', t('aussehen.logo_h'), 'https://…')
+                    . '<label for="logo_datei">' . h(t('aussehen.datei')) . '</label><input id="logo_datei" name="logo_datei" type="file" accept=".png,.jpg,.jpeg,.webp,.svg" style="margin-bottom:14px">'
+                    . '<h3 style="margin-bottom:4px">' . h(t('aussehen.hintergrund')) . '</h3>' . $vor('hintergrund')
+                    . self::feld('hintergrund_url', t('aussehen.logo_url'), '', 'text', t('aussehen.hintergrund_h'), 'https://…')
+                    . '<label for="hintergrund_datei">' . h(t('aussehen.datei')) . '</label><input id="hintergrund_datei" name="hintergrund_datei" type="file" accept=".png,.jpg,.jpeg,.webp" style="margin-bottom:14px">'
+                    . self::feld('begruessung', t('aussehen.begruessung'), (string) ($x['begruessung'] ?? ''), 'text', t('aussehen.begruessung_h'))
+                    . '<label style="font-weight:400"><input type="checkbox" name="farbe_aktiv" value="1"' . (!empty($x['farbe']) ? ' checked' : '') . '> ' . h(t('aussehen.farbe')) . '</label>'
+                    . '<input name="farbe" type="color" value="' . h((string) ($x['farbe'] ?? '#2358c4')) . '" style="width:64px;height:36px;padding:2px;margin:6px 0">'
+                    . '<div class="hint" style="margin-bottom:14px">' . h(t('aussehen.farbe_h')) . '</div>'
+                    . self::feld('datenschutz', t('aussehen.datenschutz'), (string) ($x['datenschutz'] ?? ''), 'text', '', 'https://…')
+                    . self::feld('impressum', t('aussehen.impressum'), (string) ($x['impressum'] ?? ''), 'text', '', 'https://…')
+                    . '<p class="hint">' . h(t('aussehen.recht')) . '</p>';
+                break;
             case 'adressen':
                 $h = (array) ($a['hosts'] ?? []);
                 $hb = $s('haupt');
@@ -300,6 +366,9 @@ final class Assistent
                     t('paket.titel') => t('paket.' . $s('paket', 'kirche')),
                     t('org.name') => $s('organisation'),
                     t('org.zeitzone') => $s('zeitzone'),
+                    t('aussehen.logo') => !empty($a['aussehen']['logo']) ? t('sum.vorhanden') : t('sum.keins'),
+                    t('aussehen.hintergrund') => !empty($a['aussehen']['hintergrund']) ? t('sum.vorhanden') : t('sum.keins'),
+                    t('aussehen.begruessung') => (string) ($a['aussehen']['begruessung'] ?? '') !== '' ? (string) $a['aussehen']['begruessung'] : t('sum.keins'),
                     t('adr.hub') => (string) ($h['hub'] ?? ''),
                     t('adr.auth') => (string) ($h['auth'] ?? ''),
                     t('adr.files') => (string) ($h['files'] ?? ''),
@@ -329,7 +398,7 @@ final class Assistent
         if ($weiterText !== '') {
             $nav .= '<button type="submit" name="nav" value="weiter">' . h($weiterText) . '</button>';
         }
-        return $kopf . '<div class="box"><form method="post"><input type="hidden" name="aktion" value="schritt"><input type="hidden" name="schritt" value="' . h($schritt) . '">'
+        return $kopf . '<div class="box"><form method="post" enctype="multipart/form-data"><input type="hidden" name="aktion" value="schritt"><input type="hidden" name="schritt" value="' . h($schritt) . '">'
             . csrfFeld() . $meld . $body . '<div style="margin-top:6px">' . $nav . '</div></form></div>';
     }
 }
